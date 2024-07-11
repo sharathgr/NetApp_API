@@ -66,6 +66,19 @@
         validate_certs: false
       register: cifs_shares
 
+    - name: Get CIFS share details (ACLs and Paths)
+      uri:
+        url: "https://{{ source_host }}/api/protocols/cifs/shares/{{ item.svm.uuid }}/{{ item.name }}"
+        method: GET
+        headers:
+          Authorization: "{{ auth_header }}"
+          Content-Type: "application/json"
+        validate_certs: false
+      register: cifs_share_details
+      loop: "{{ cifs_shares.json.records }}"
+      loop_control:
+        loop_var: item
+
     - name: Save collected data
       copy:
         content: |
@@ -74,4 +87,5 @@
           export_policies: {{ export_policies.json }}
           export_policy_rules: {{ export_policy_rules.results | default([]) }}
           cifs_shares: {{ cifs_shares.json }}
+          cifs_share_details: {{ cifs_share_details.results | default([])}}
         dest: collected_data.yml
