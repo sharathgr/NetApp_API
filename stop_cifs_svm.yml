@@ -26,6 +26,26 @@
       set_fact:
         source_svm_uuid: "{{ svm_info.json.records[0].uuid }}"
         
+    - name: Get CIFS server details on source_vserver
+      uri:
+        url: "https://{{ source_host }}/api/protocols/cifs/services/{{ source_svm_uuid }}"
+        method: GET
+        headers:
+          Authorization: "{{ auth_header }}"
+          Content-Type: "application/json"
+        validate_certs: false
+      register: cifs_details_response
+      ignore_errors: true
+
+    - name: Save CIFS server details to file
+      copy:
+        content: "{{ cifs_details_response | to_nice_yaml }}"
+        dest: cifs_server.yml
+
+    - name: Debug CIFS server details
+      debug:
+        var: cifs_details_response
+
     - name: Stop CIFS server on source_vserver
       uri:
         url: "https://{{ source_host }}/api/protocols/cifs/services/{{ source_svm_uuid }}"
@@ -39,10 +59,6 @@
         validate_certs: false
       register: stop_cifs_response
       ignore_errors: true
-
-    - name: Debug stop CIFS server response
-      debug:
-        var: stop_cifs_response
 
     - name: Get list of volumes in source_vserver
       uri:
@@ -104,6 +120,7 @@
     - name: Save operation details to file
       copy:
         content: |
+          cifs_details_response: {{ cifs_details_response | to_nice_yaml }}
           stop_cifs_response: {{ stop_cifs_response | to_nice_yaml }}
           volumes_response: {{ volumes_response | to_nice_yaml }}
           snapshot_responses: {{ snapshot_responses | to_nice_yaml }}
