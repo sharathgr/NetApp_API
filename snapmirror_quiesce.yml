@@ -1,0 +1,64 @@
+---
+- name: Ontap REST API
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  collections:
+    - netapp.ontap
+  vars:
+    login:
+      hostname: 192.168.0.102
+      username: admin
+      password: Netapp1!
+      dr_svm_name: dr_svm
+      https: true
+      validate_certs: false
+      feature_flags:
+        trace_apis: true
+
+  tasks:
+    - name: snapmirror status on dr post update
+      na_ontap_rest_cli:
+        hostname: "{{ login.hostname }}"
+        username: "{{ login.username }}"
+        password: "{{ login.password }}"
+        https: "{{ login.https }}"
+        validate_certs: "{{ login.validate_certs }}"
+        command: 'snapmirror?destination-vserver="{{ login.dr_svm_name }}"&fields=lag-time,status,state'
+        verb: 'GET'
+      register: snapmirror_status
+      until: snapmirror_status.msg.records[0].status == "idle"
+      retries: 60
+      delay: 15
+
+    - debug:
+        var: snapmirror_status
+    - name: quiesce snapmirror on dr
+      na_ontap_rest_cli:
+        hostname: "{{ login.hostname }}"
+        username: "{{ login.username }}"
+        password: "{{ login.password }}"
+        https: "{{ login.https }}"
+        validate_certs: "{{ login.validate_certs }}"
+        command: 'snapmirror/quiesce?destination-vserver="{{login.dr_svm_name}}"&fields=lag-time,status,state'
+        verb: 'PATCH'
+      register: snapmirror_quiesce
+      when: snapmirror_status.msg.records[0].status == "idle"
+    - debug:
+       var: snapmirror_quiesce
+
+    - name: snapmirror status on dr post quiesce
+      na_ontap_rest_cli:
+        hostname: "{{ login.hostname }}"
+        username: "{{ login.username }}"
+        password: "{{ login.password }}"
+        https: "{{ login.https }}"
+        validate_certs: "{{ login.validate_certs }}"
+        command: 'snapmirror?destination-vserver="{{login.dr_svm_name}}"&fields=lag-time,status,state'
+        verb: 'GET'
+      register: snapmirror_status
+      until: snapmirror_status.msg.records[0].status == "quiesced"
+      retries: 60
+      delay: 15
+    - debug:
+       var: snapmirror_status
