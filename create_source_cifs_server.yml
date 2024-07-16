@@ -7,28 +7,6 @@
     - vars.yml
     - collected_source_cifs_server_info.yml
 
-  vars:
-    source_host: "192.168.0.101"
-    target_host: "192.168.0.102"
-    source_vserver: "svm1_cluster1"
-    target_vserver: "dr_svm"
-    username: "admin"
-    password: "Netapp1!"
-    auth_header: "Basic {{ (username + ':' + password) | b64encode }}"
-
-    ad_domain_user: sharath
-    ad_domain_password: NetApp@123
-    netapp_mgmt_ip: "192.168.0.101"
-    netapp_username: "admin"
-    netapp_password: "Netapp1!"
-    vserver_name: "svm1_cluster1"
-    cifs_server_name: "CIFS1"
-    active_directory_domain: "demo.netapp.com"
-    organizational_unit: " CN=Computers"
-    admin_username: "sharath"
-    admin_password: "NetApp@123"
-    cifs_server_comment: "Managed via Ansible using REST API"
-
   tasks:
     - name: Read CIFS Server details from cifs_server_dr.yml
       include_vars:
@@ -67,7 +45,7 @@
           ad_domain.organizational_unit: "{{ source_cifs_server_details.ad_domain.organizational_unit }}"
           ad_domain.user: "{{ ad_domain_user }}"
           ad_domain.password: "{{ ad_domain_password }}"
-          comment: "{{ cifs_server_comment }}"
+          comment: "{{ source_cifs_server_details.comment }}"
         force: true
         validate_certs: no
         status_code: 201
