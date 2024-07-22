@@ -1,5 +1,5 @@
 ---
-- name: Collect volume details on source_vserver and target_vserver
+- name: Collect volume details on source_vserver
   hosts: localhost
   connection: local
   gather_facts: false
