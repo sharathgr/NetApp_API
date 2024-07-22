@@ -24,6 +24,7 @@
         mount_details: >-
           {{ mount_details +
              [{ 'path': item.path,
+                'name': item.name,
                 'uuid': (target_volumes.target_volume_path | selectattr('name', 'equalto', item.name) | list | first).uuid }] }}
       loop: "{{ source_volumes.volume_path }}"
       loop_control:
@@ -34,4 +35,4 @@
         content: |
           mount_details:
           {{ mount_details | to_nice_yaml }}
-        dest: mount.yml
+        dest: modified_target_mounts.yml
