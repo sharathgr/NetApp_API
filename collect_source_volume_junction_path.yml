@@ -76,4 +76,4 @@
         content: |
           Detailed Source Volume Information:
           {{ source_detailed_volumes | to_nice_yaml }}
-        dest: detailed_source_volumes.yml
+        dest: source_volume_path.yml
