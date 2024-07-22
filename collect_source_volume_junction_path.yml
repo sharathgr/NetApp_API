@@ -74,6 +74,6 @@
     - name: Store detailed source volume information in a file
       copy:
         content: |
-          Detailed Source Volume Information:
+          volume_path:
           {{ source_detailed_volumes | to_nice_yaml }}
         dest: source_volume_path.yml
