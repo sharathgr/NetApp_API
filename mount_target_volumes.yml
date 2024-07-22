@@ -6,14 +6,13 @@
 
   vars_files:
     - vars.yml
-    - detailed_source_volumes.yml
-    #- detailed_volumes.yml
+    - modified_target_mounts.yml
 
   tasks:
 
     - name: Mount volumes
       uri:
-        url: "https://{{ source_host }}/api/storage/volumes/{{ item.uuid }}"
+        url: "https://{{ target_host }}/api/storage/volumes/{{ item.uuid }}"
         method: PATCH
         headers:
           Authorization: "{{ auth_header }}"
@@ -23,7 +22,7 @@
         body:
           name: "{{ item.name }}"
           nas.path: "{{ item.path }}"
-      loop: "{{ volume_path }}"
+      loop: "{{ mount_details }}"
       register: result
 
     - name: Print result
