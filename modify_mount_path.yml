@@ -1,0 +1,37 @@
+---
+- name: Copy UUIDs from target_volume_path.yml to source_volume_path.yml and create mount.yml
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Load source_volume_path.yml
+      include_vars:
+        file: source_volume_path.yml
+        name: source_volumes
+
+    - name: Load target_volume_path.yml
+      include_vars:
+        file: target_volume_path.yml
+        name: target_volumes
+
+    - name: Initialize empty list to store mount details
+      set_fact:
+        mount_details: []
+
+    - name: Combine source path with target UUID
+      set_fact:
+        mount_details: >-
+          {{ mount_details +
+             [{ 'path': item.path,
+                'uuid': (target_volumes.target_volume_path | selectattr('name', 'equalto', item.name) | list | first).uuid }] }}
+      loop: "{{ source_volumes.volume_path }}"
+      loop_control:
+        loop_var: item
+
+    - name: Save mount details to mount.yml
+      copy:
+        content: |
+          mount_details:
+          {{ mount_details | to_nice_yaml }}
+        dest: mount.yml
